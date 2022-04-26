@@ -99,7 +99,7 @@ def multiclass_noisify(y, P, random_state=0):
     """ Flip classes according to transition probability matrix T.
     It expects a number between 0 and the number of classes - 1.
     """
-    print np.max(y), P.shape[0]
+    # print(np.max(y), P.shape[0])
     assert P.shape[0] == P.shape[1]
     assert np.max(y) < P.shape[0]
 
@@ -108,7 +108,7 @@ def multiclass_noisify(y, P, random_state=0):
     assert (P >= 0.0).all()
 
     m = y.shape[0]
-    print m
+    # print(m)
     new_y = y.copy()
     flipper = np.random.RandomState(random_state)
 
@@ -140,9 +140,9 @@ def noisify_pairflip(y_train, noise, random_state=None, nb_classes=10):
                                            random_state=random_state)
         actual_noise = (y_train_noisy != y_train).mean()
         assert actual_noise > 0.0
-        print('Actual noise %.2f' % actual_noise)
+        # print('Actual noise %.2f' % actual_noise)
         y_train = y_train_noisy
-    print P
+    # print(P) # 噪声矩阵
 
     return y_train, actual_noise
 
@@ -167,7 +167,7 @@ def noisify_multiclass_symmetric(y_train, noise, random_state=None, nb_classes=1
         assert actual_noise > 0.0
         print('Actual noise %.2f' % actual_noise)
         y_train = y_train_noisy
-    print P
+    print(P)
 
     return y_train, actual_noise
 

@@ -1,3 +1,7 @@
+# Co-teaching-attention
+
+co-teaching 加上注意力机制进行改进
+
 # Co-teaching 
 NeurIPS'18: Co-teaching: Robust Training of Deep Neural Networks with Extremely Noisy Labels (Pytorch implementation).
 

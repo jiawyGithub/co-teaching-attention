@@ -5,13 +5,17 @@ from torch.autograd import Variable
 import numpy as np
 
 # Loss functions
-def loss_coteaching(y_1, y_2, t, forget_rate, ind, noise_or_not):
+def loss_coteaching(y_1, y_2, t, forget_rate, ind, noise_or_not, use_gpu):
     loss_1 = F.cross_entropy(y_1, t, reduce = False)
-    ind_1_sorted = np.argsort(loss_1.data).cuda()
+    ind_1_sorted = np.argsort(loss_1.data)
+    if use_gpu:
+        ind_1_sorted = ind_1_sorted.cuda()
     loss_1_sorted = loss_1[ind_1_sorted]
 
     loss_2 = F.cross_entropy(y_2, t, reduce = False)
-    ind_2_sorted = np.argsort(loss_2.data).cuda()
+    ind_2_sorted = np.argsort(loss_2.data)
+    if use_gpu:
+        ind_2_sorted = ind_1_sorted.cuda()
     loss_2_sorted = loss_2[ind_2_sorted]
 
     remember_rate = 1 - forget_rate
