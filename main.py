@@ -8,6 +8,7 @@ import torchvision.transforms as transforms
 from data.cifar import CIFAR10, CIFAR100
 from data.mnist import MNIST
 from model import CNN
+from model_attention import CNN_CBAM
 import argparse, sys
 import numpy as np
 import datetime
@@ -16,25 +17,28 @@ import json
 from loss import loss_coteaching
 
 use_gpu = torch.cuda.is_available()
-dataset_root = "/Users/youi/Desktop/task/dataset/"
+# dataset_root = "/Users/youi/Desktop/task/dataset/"
+dataset_root = "/home/jiawenyu/datasets/"
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--lr', type = float, default = 0.001)
 parser.add_argument('--result_dir', type = str, help = 'dir to save result txt files', default = 'results/')
-parser.add_argument('--noise_rate', type = float, help = 'corruption rate, should be less than 1', default = 0.2)
 parser.add_argument('--forget_rate', type = float, help = 'forget rate', default = None)
-parser.add_argument('--noise_type', type = str, help='[pairflip, symmetric]', default='pairflip')
 parser.add_argument('--num_gradual', type = int, default = 10, help='how many epochs for linear drop rate, can be 5, 10, 15. This parameter is equal to Tk for R(T) in Co-teaching paper.')
 parser.add_argument('--exponent', type = float, default = 1, help='exponent of the forget rate, can be 0.5, 1, 2. This parameter is equal to c in Tc for R(T) in Co-teaching paper.')
 parser.add_argument('--top_bn', action='store_true')
-parser.add_argument('--dataset', type = str, help = 'mnist, cifar10, or cifar100', default = 'mnist')
-parser.add_argument('--n_epoch', type=int, default=10)
 parser.add_argument('--seed', type=int, default=1)
 parser.add_argument('--print_freq', type=int, default=50)
 parser.add_argument('--num_workers', type=int, default=1, help='how many subprocesses to use for data loading') # 4
 parser.add_argument('--num_iter_per_epoch', type=int, default=400)
 parser.add_argument('--epoch_decay_start', type=int, default=80)
-parser.add_argument('--debug', type=int, default=1)
+
+# 经常改的参数
+parser.add_argument('--noise_type', type = str, help='[pairflip, symmetric]', default='symmetric')
+parser.add_argument('--noise_rate', type = float, help = 'corruption rate, should be less than 1', default = 0.2)
+parser.add_argument('--dataset', type = str, help = 'mnist, cifar10, or cifar100', default = 'mnist')
+parser.add_argument('--n_epoch', type=int, default=200)
+parser.add_argument('--debug', type=int, default=0)
 
 args = parser.parse_args()
 kwargs = vars(args)
@@ -74,16 +78,16 @@ if args.dataset=='cifar10':
     num_classes=10
     args.top_bn = False
     args.epoch_decay_start = 80
-    train_dataset = CIFAR10(root=dataset_root,
-                                download=True,  
+    train_dataset = CIFAR10(root=dataset_root+"CIFAR10",
+                                download=False,  
                                 train=True, 
                                 transform=transforms.ToTensor(),
                                 noise_type=args.noise_type,
                                 noise_rate=args.noise_rate
                            )
     
-    test_dataset = CIFAR10(root=dataset_root,
-                                download=True,  
+    test_dataset = CIFAR10(root=dataset_root+"CIFAR10",
+                                download=False, 
                                 train=False, 
                                 transform=transforms.ToTensor(),
                                 noise_type=args.noise_type,
@@ -211,8 +215,11 @@ def train(train_loader,epoch, model1, optimizer1, model2, optimizer2):
         loss_2.backward()
         optimizer2.step()
         if (i+1) % args.print_freq == 0:
-            print('Epoch [%d/%d], Iter [%d/%d] Training Accuracy1: %.4F, Training Accuracy2: %.4f, Loss1: %.4f, Loss2: %.4f, Pure Ratio1: %.4f, Pure Ratio2 %.4f' 
-                  %(epoch+1, args.n_epoch, i+1, len(train_dataset)//batch_size, prec1, prec2, loss_1.data[0], loss_2.data[0], np.sum(pure_ratio_1_list)/len(pure_ratio_1_list), np.sum(pure_ratio_2_list)/len(pure_ratio_2_list)))
+            print(
+                'Epoch [%d/%d], Iter [%d/%d] Training Accuracy1: %.4F, Training Accuracy2: %.4f, Loss1: %.4f, Loss2: %.4f, Pure Ratio1: %.4f, Pure Ratio2 %.4f'
+                % (epoch + 1, args.n_epoch, i + 1, len(train_dataset) // batch_size, prec1, prec2, loss_1.item(),
+                   loss_2.item(), np.sum(pure_ratio_1_list) / len(pure_ratio_1_list),
+                   np.sum(pure_ratio_2_list) / len(pure_ratio_2_list)))
         if args.debug:
             break
 
@@ -274,13 +281,15 @@ def main():
                                               shuffle=False)
     # Define models
     print('building model...')
-    cnn1 = CNN(input_channel=input_channel, n_outputs=num_classes)
+    # cnn1 = CNN(input_channel=input_channel, n_outputs=num_classes)
+    cnn1 = CNN_CBAM(input_channel=input_channel, n_outputs=num_classes, attention_type="ca") # 加入通道注意力
     if use_gpu:
         cnn1.cuda()
     print(cnn1.parameters)
     optimizer1 = torch.optim.Adam(cnn1.parameters(), lr=learning_rate)
     
-    cnn2 = CNN(input_channel=input_channel, n_outputs=num_classes)
+    cnn2 = CNN_CBAM(input_channel=input_channel, n_outputs=num_classes, attention_type="sa") # 加入空间注意力
+    # cnn2 = CNN(input_channel=input_channel, n_outputs=num_classes)
     if use_gpu:
         cnn2.cuda()
     print(cnn2.parameters)
