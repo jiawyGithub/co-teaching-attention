@@ -9,6 +9,7 @@ from data.cifar import CIFAR10, CIFAR100
 from data.mnist import MNIST
 from model import CNN
 from model_attention import CNN_CBAM
+from model_self_attention import CNN_Attention
 import argparse, sys
 import numpy as np
 import datetime
@@ -17,8 +18,8 @@ import json
 from loss import loss_coteaching
 
 use_gpu = torch.cuda.is_available()
-# dataset_root = "/Users/youi/Desktop/task/dataset/"
-dataset_root = "/home/jiawenyu/datasets/"
+dataset_root = "/Users/youi/Desktop/task/dataset/"
+# dataset_root = "/home/jiawenyu/datasets/"
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--lr', type = float, default = 0.001)
@@ -36,9 +37,9 @@ parser.add_argument('--epoch_decay_start', type=int, default=80)
 # 经常改的参数
 parser.add_argument('--noise_type', type = str, help='[pairflip, symmetric]', default='symmetric')
 parser.add_argument('--noise_rate', type = float, help = 'corruption rate, should be less than 1', default = 0.2)
-parser.add_argument('--dataset', type = str, help = 'mnist, cifar10, or cifar100', default = 'mnist')
+parser.add_argument('--dataset', type = str, help = 'mnist, cifar10, or cifar100', default = 'cifar10')
 parser.add_argument('--n_epoch', type=int, default=200)
-parser.add_argument('--debug', type=int, default=0)
+parser.add_argument('--debug', type=int, default=1)
 
 args = parser.parse_args()
 kwargs = vars(args)
@@ -282,13 +283,13 @@ def main():
     # Define models
     print('building model...')
     # cnn1 = CNN(input_channel=input_channel, n_outputs=num_classes)
-    cnn1 = CNN_CBAM(input_channel=input_channel, n_outputs=num_classes, attention_type="ca") # 加入通道注意力
+    cnn1 = CNN_CBAM(input_channel=input_channel, n_outputs=num_classes)
     if use_gpu:
         cnn1.cuda()
     print(cnn1.parameters)
     optimizer1 = torch.optim.Adam(cnn1.parameters(), lr=learning_rate)
     
-    cnn2 = CNN_CBAM(input_channel=input_channel, n_outputs=num_classes, attention_type="sa") # 加入空间注意力
+    cnn2 = CNN_Attention(input_channel=input_channel, n_outputs=num_classes) # 加入空间注意力
     # cnn2 = CNN(input_channel=input_channel, n_outputs=num_classes)
     if use_gpu:
         cnn2.cuda()

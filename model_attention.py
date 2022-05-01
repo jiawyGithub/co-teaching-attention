@@ -60,11 +60,8 @@ class CBAM(nn.Module):
         self.attention_type = attention_type
 
     def forward(self, x):
-        x_out = x
-        if self.attention_type == 'ca':
-            x_out = self.CALayer(x_out)
-        else:
-            x_out = self.SALayer(x_out)
+        x_out = self.CALayer(x)
+        x_out = self.SALayer(x_out)
         return x_out
 
 class CNN_CBAM(nn.Module):
