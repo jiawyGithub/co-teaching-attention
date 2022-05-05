@@ -15,7 +15,7 @@ def loss_coteaching(y_1, y_2, t, forget_rate, ind, noise_or_not, use_gpu):
     loss_2 = F.cross_entropy(y_2, t, reduce = False)
     ind_2_sorted = np.argsort(loss_2.cpu().data)
     if use_gpu:
-        ind_2_sorted = ind_1_sorted.cuda()
+        ind_2_sorted = ind_2_sorted.cuda()
     loss_2_sorted = loss_2[ind_2_sorted]
 
     remember_rate = 1 - forget_rate
