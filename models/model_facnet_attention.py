@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.init as init 
 import torch.nn.functional as F
 import torch.optim as optim
-from fcanet_attention import MultiSpectralAttentionLayer
+from attention.fcanet_attention import MultiSpectralAttentionLayer
 
 
 def call_bn(bn, x):

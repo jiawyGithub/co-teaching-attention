@@ -4,19 +4,19 @@ import torch.nn as nn
 import torch.nn.init as init 
 import torch.nn.functional as F
 import torch.optim as optim
-from coordinate_attention import CoordAtt
+from attention.external_attention import External_attention
 
 
 def call_bn(bn, x):
     return bn(x)
 
-class CNN_Coord(nn.Module):
+class CNN_External(nn.Module):
     def __init__(self, input_channel=3, n_outputs=10, dropout_rate=0.25, top_bn=False):
         self.dropout_rate = dropout_rate
         self.top_bn = top_bn
-        super(CNN_Coord, self).__init__()
+        super(CNN_External, self).__init__()
         self.c1=nn.Conv2d(input_channel,128,kernel_size=3,stride=1, padding=1)
-        self.attention_block1 = CoordAtt(128, 128)
+        self.attention_block1 = External_attention(128)
         self.c2=nn.Conv2d(128,128,kernel_size=3,stride=1, padding=1)
         self.c3=nn.Conv2d(128,128,kernel_size=3,stride=1, padding=1)
         self.c4=nn.Conv2d(128,256,kernel_size=3,stride=1, padding=1)
@@ -25,7 +25,7 @@ class CNN_Coord(nn.Module):
         self.c7=nn.Conv2d(256,512,kernel_size=3,stride=1, padding=0)
         self.c8=nn.Conv2d(512,256,kernel_size=3,stride=1, padding=0)
         self.c9=nn.Conv2d(256,128,kernel_size=3,stride=1, padding=0)
-        self.attention_block2 = CoordAtt(128, 128)
+        self.attention_block2 = External_attention(128)
         self.l_c1=nn.Linear(128,n_outputs)
         self.bn1=nn.BatchNorm2d(128)
         self.bn2=nn.BatchNorm2d(128)

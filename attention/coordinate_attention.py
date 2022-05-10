@@ -60,12 +60,12 @@ class CoordAtt(nn.Module):
         return out
 
 
-def main():
-    attention_block = CoordAtt(64, 64)
-    input = torch.randn(4, 64, 32, 32)
-    output = attention_block(input)
-    print(input.size(), output.size())
+# def main():
+#     attention_block = CoordAtt(64, 64)
+#     input = torch.randn(4, 64, 32, 32)
+#     output = attention_block(input)
+#     print(input.size(), output.size())
 
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()

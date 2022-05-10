@@ -8,22 +8,27 @@ import torchvision.transforms as transforms
 from data.cifar import CIFAR10, CIFAR100
 from data.mnist import MNIST
 from model import CNN
-from model_sece_attention import CNN_CBAM
-from model_PAM_attention import CNN_PAM
-from model_PAM_attention2 import CNN_PAM2
-from model_self_attention import CNN_Attention
-from model_facnet_attention import CNN_Facnet
-from model_coordinate_attention import CNN_Coord
+from models.model_sece_attention import CNN_CBAM
+from models.model_PAM_attention import CNN_PAM
+from models.model_PAM_attention2 import CNN_PAM2
+from models.model_self_attention import CNN_Attention
+from models.model_facnet_attention import CNN_Facnet
+from models.model_coordinate_attention import CNN_Coord
+from models.model_simam_attention import CNN_Simam
+from models.model_External_attention import CNN_External
+from models.model_hamnet_attention import CNN_Hamnet
 import argparse, sys
 import numpy as np
 import datetime
 import json
+import pynvml
+import time
 
 from loss import loss_coteaching
 
 use_gpu = torch.cuda.is_available()
-dataset_root = "/Users/youi/Desktop/task/dataset/"
 
+dataset_root = "/Users/youi/Desktop/task/dataset/"
 if use_gpu:
     dataset_root = "/home/jiawenyu/datasets/"
 
@@ -46,6 +51,7 @@ parser.add_argument('--noise_rate', type = float, help = 'corruption rate, shoul
 parser.add_argument('--dataset', type = str, help = 'mnist, cifar10, or cifar100', default = 'cifar10')
 parser.add_argument('--n_epoch', type=int, default=200)
 parser.add_argument('--debug', type=int, default=0)
+parser.add_argument('--gpu', type=int, default=0)
 
 args = parser.parse_args()
 kwargs = vars(args) 
@@ -297,7 +303,12 @@ def main():
     # cnn1 = CNN_CBAM(input_channel=input_channel, n_outputs=num_classes, attention_type="ca") # 加入通道注意力
     # cnn1 = CNN_PAM(input_channel=input_channel, n_outputs=num_classes) # 加入位置注意力
     # cnn1 = CNN_Facnet(input_channel=input_channel, n_outputs=num_classes) # 加入频率通道注意力
-    cnn1 = CNN_Coord(input_channel=input_channel, n_outputs=num_classes) # 加入协同注意力
+    # cnn1 = CNN_Coord(input_channel=input_channel, n_outputs=num_classes) # 加入协同注意力
+    # cnn1 = CNN_Simam(input_channel=input_channel, n_outputs=num_classes) # 加入无参数注意力
+    # cnn1 = CNN_External(input_channel=input_channel, n_outputs=num_classes) # 加入外部注意力
+    cnn1 = CNN_Hamnet(input_channel=input_channel, n_outputs=num_classes) # 加入hamnet注意力
+    
+
     if use_gpu:
         cnn1.cuda()
     print(cnn1.parameters)
@@ -307,7 +318,11 @@ def main():
     # cnn2 = CNN_Attention(input_channel=input_channel, n_outputs=num_classes) # 加入自注意力
     # cnn2 = CNN_CBAM(input_channel=input_channel, n_outputs=num_classes, attention_type="ca") # 加入空间注意力
     # cnn2 = CNN_PAM(input_channel=input_channel, n_outputs=num_classes) # 加入位置注意力
-    cnn2 = CNN_Coord(input_channel=input_channel, n_outputs=num_classes) # 加入协同注意力
+    # cnn2 = CNN_Coord(input_channel=input_channel, n_outputs=num_classes) # 加入协同注意力
+    # cnn2 = CNN_Simam(input_channel=input_channel, n_outputs=num_classes) # 加入无参数注意力
+    # cnn2 = CNN_External(input_channel=input_channel, n_outputs=num_classes) # 加入外部注意力
+    cnn2 = CNN_Hamnet(input_channel=input_channel, n_outputs=num_classes) # 加入hamnet注意力
+
 
     
     if use_gpu:
@@ -350,4 +365,23 @@ def main():
 
 if __name__=='__main__':
     print("input args:\n", json.dumps(kwargs, indent=4, separators=(",", ":")))
-    main()
+    if not use_gpu:
+        main()
+    else:
+        while True:
+            pynvml.nvmlInit()
+            # 这里的0是GPU id
+            handle = pynvml.nvmlDeviceGetHandleByIndex(args.gpu)
+            meminfo = pynvml.nvmlDeviceGetMemoryInfo(handle)
+            total = meminfo.total // 1024 ** 2  # 显卡总的显存大小
+            used = meminfo.used // 1024 ** 2  # 这里是字节bytes，所以要想得到以兆M为单位就需要除以1024**2
+            free = meminfo.free // 1024 ** 2
+            # print("total", total)
+            # print("used", used)
+            print("free", free)
+
+            if free > 6000:
+                main()
+                break
+
+            time.sleep(300)
