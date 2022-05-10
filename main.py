@@ -10,7 +10,10 @@ from data.mnist import MNIST
 from model import CNN
 from model_sece_attention import CNN_CBAM
 from model_PAM_attention import CNN_PAM
+from model_PAM_attention2 import CNN_PAM2
 from model_self_attention import CNN_Attention
+from model_facnet_attention import CNN_Facnet
+from model_coordinate_attention import CNN_Coord
 import argparse, sys
 import numpy as np
 import datetime
@@ -19,8 +22,10 @@ import json
 from loss import loss_coteaching
 
 use_gpu = torch.cuda.is_available()
-# dataset_root = "/Users/youi/Desktop/task/dataset/"
-dataset_root = "/home/jiawenyu/datasets/"
+dataset_root = "/Users/youi/Desktop/task/dataset/"
+
+if use_gpu:
+    dataset_root = "/home/jiawenyu/datasets/"
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--lr', type = float, default = 0.001) # 0.001
@@ -45,9 +50,13 @@ parser.add_argument('--debug', type=int, default=0)
 args = parser.parse_args()
 kwargs = vars(args) 
 
+if not use_gpu:
+    args.debug = 1
+
 # Seed
 torch.manual_seed(args.seed)
 torch.cuda.manual_seed(args.seed)
+
 
 # Hyper Parameters
 batch_size = 128
@@ -284,8 +293,11 @@ def main():
     # Define models
     print('building model...')
     # cnn1 = CNN(input_channel=input_channel, n_outputs=num_classes)
-    cnn1 = CNN_CBAM(input_channel=input_channel, n_outputs=num_classes) # 加入通道空间注意力
+    # cnn1 = CNN_CBAM(input_channel=input_channel, n_outputs=num_classes) # 加入通道空间注意力
     # cnn1 = CNN_CBAM(input_channel=input_channel, n_outputs=num_classes, attention_type="ca") # 加入通道注意力
+    # cnn1 = CNN_PAM(input_channel=input_channel, n_outputs=num_classes) # 加入位置注意力
+    # cnn1 = CNN_Facnet(input_channel=input_channel, n_outputs=num_classes) # 加入频率通道注意力
+    cnn1 = CNN_Coord(input_channel=input_channel, n_outputs=num_classes) # 加入协同注意力
     if use_gpu:
         cnn1.cuda()
     print(cnn1.parameters)
@@ -293,8 +305,10 @@ def main():
     
     # cnn2 = CNN(input_channel=input_channel, n_outputs=num_classes)
     # cnn2 = CNN_Attention(input_channel=input_channel, n_outputs=num_classes) # 加入自注意力
-    # cnn2 = CNN_CBAM(input_channel=input_channel, n_outputs=num_classes, attention_type="sa") # 加入空间注意力
-    cnn2 = CNN_PAM(input_channel=input_channel, n_outputs=num_classes) # 加入空间注意力
+    # cnn2 = CNN_CBAM(input_channel=input_channel, n_outputs=num_classes, attention_type="ca") # 加入空间注意力
+    # cnn2 = CNN_PAM(input_channel=input_channel, n_outputs=num_classes) # 加入位置注意力
+    cnn2 = CNN_Coord(input_channel=input_channel, n_outputs=num_classes) # 加入协同注意力
+
     
     if use_gpu:
         cnn2.cuda()

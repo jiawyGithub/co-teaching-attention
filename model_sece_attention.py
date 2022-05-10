@@ -79,18 +79,17 @@ class CNN_CBAM(nn.Module):
         self.se = CBAM(in_channels=128, attention_type=attention_type)
         self.c2 = nn.Conv2d(128, 128, kernel_size=3, stride=1, padding=1)
         self.c3 = nn.Conv2d(128, 128, kernel_size=3, stride=1, padding=1)
-
+        self.se1 = CBAM(in_channels=128, attention_type=attention_type)
         self.c4 = nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1)
         self.c5 = nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1)
         self.c6 = nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1)
-        # self.se1 = CBAM(in_channels=256, attention_type=attention_type)
-
+        self.se2 = CBAM(in_channels=256, attention_type=attention_type)
         self.c7 = nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=0)
-        # self.se2 = CBAM(in_channels=512, attention_type=attention_type)
-
+        self.se3 = CBAM(in_channels=512, attention_type=attention_type)
         self.c8 = nn.Conv2d(512, 256, kernel_size=3, stride=1, padding=0)
-
+        self.se4 = CBAM(in_channels=256, attention_type=attention_type)
         self.c9 = nn.Conv2d(256, 128, kernel_size=3, stride=1, padding=0)
+        self.se5 = CBAM(in_channels=128, attention_type=attention_type)
 
         self.l_c1 = nn.Linear(128, n_outputs)
         self.bn1 = nn.BatchNorm2d(128)
@@ -106,11 +105,11 @@ class CNN_CBAM(nn.Module):
     def forward(self, x, ):
         h = x
         h = self.c1(h)
-        h = self.se(h)
         h = F.leaky_relu(call_bn(self.bn1, h), negative_slope=0.01)
         h = self.c2(h)
         h = F.leaky_relu(call_bn(self.bn2, h), negative_slope=0.01)
         h = self.c3(h)
+        h = self.se1(h)
         h = F.leaky_relu(call_bn(self.bn3, h), negative_slope=0.01)
         h = F.max_pool2d(h, kernel_size=2, stride=2)
         h = F.dropout2d(h, p=self.dropout_rate)
@@ -120,19 +119,19 @@ class CNN_CBAM(nn.Module):
         h = self.c5(h)
         h = F.leaky_relu(call_bn(self.bn5, h), negative_slope=0.01)
         h = self.c6(h)
-        # h = self.se1(h)
+        h = self.se2(h)
         h = F.leaky_relu(call_bn(self.bn6, h), negative_slope=0.01)
         h = F.max_pool2d(h, kernel_size=2, stride=2)
         h = F.dropout2d(h, p=self.dropout_rate)
 
         h = self.c7(h)
-        # h = self.se2(h)
+        h = self.se3(h)
         h = F.leaky_relu(call_bn(self.bn7, h), negative_slope=0.01)
         h = self.c8(h)
-        # h = self.se1(h)
+        h = self.se4(h)
         h = F.leaky_relu(call_bn(self.bn8, h), negative_slope=0.01)
         h = self.c9(h)
-        h = self.se(h)
+        h = self.se5(h)
         h = F.leaky_relu(call_bn(self.bn9, h), negative_slope=0.01)
         h = F.avg_pool2d(h, kernel_size=h.data.shape[2])
 
