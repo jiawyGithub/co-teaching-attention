@@ -4,17 +4,17 @@ import torch.nn as nn
 import torch.nn.init as init 
 import torch.nn.functional as F
 import torch.optim as optim
-from attention.coordinate_attention import CoordAtt
+from attention.coordinate_attention2 import CoordAtt
 
 
 def call_bn(bn, x):
     return bn(x)
 
-class CNN_Coord(nn.Module):
+class CNN_Coord2(nn.Module):
     def __init__(self, input_channel=3, n_outputs=10, dropout_rate=0.25, top_bn=False):
         self.dropout_rate = dropout_rate
         self.top_bn = top_bn
-        super(CNN_Coord, self).__init__()
+        super(CNN_Coord2, self).__init__()
         self.c1=nn.Conv2d(input_channel,128,kernel_size=3,stride=1, padding=1)
         self.attention_block1 = CoordAtt(128, 128)
         self.c2=nn.Conv2d(128,128,kernel_size=3,stride=1, padding=1)

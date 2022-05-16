@@ -22,8 +22,8 @@ class NMF(nn.Module):
         super().__init__()
         r = dim // ratio
 
-        self.D = torch.zeros(dim, r).uniform_(0, 1)
-        self.C = torch.zeros(r, n).uniform_(0, 1)
+        self.D = torch.zeros(dim, r).uniform_(0, 1).cuda()
+        self.C = torch.zeros(r, n).uniform_(0, 1).cuda()
 
         self.K = K
 

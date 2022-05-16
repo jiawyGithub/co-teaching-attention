@@ -64,7 +64,7 @@ class CNN_External(nn.Module):
         h=self.c8(h)
         h=F.leaky_relu(call_bn(self.bn8, h), negative_slope=0.01)
         h=self.c9(h)
-        h = self.attention_block2(h)
+        # h = self.attention_block2(h)
         h=F.leaky_relu(call_bn(self.bn9, h), negative_slope=0.01)
         h=F.avg_pool2d(h, kernel_size=h.data.shape[2])
 

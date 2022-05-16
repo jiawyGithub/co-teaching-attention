@@ -7,13 +7,14 @@ from torch.autograd import Variable
 import torchvision.transforms as transforms
 from data.cifar import CIFAR10, CIFAR100
 from data.mnist import MNIST
-from model import CNN
+from models.model import CNN
 from models.model_sece_attention import CNN_CBAM
 from models.model_PAM_attention import CNN_PAM
 from models.model_PAM_attention2 import CNN_PAM2
 from models.model_self_attention import CNN_Attention
 from models.model_facnet_attention import CNN_Facnet
 from models.model_coordinate_attention import CNN_Coord
+from models.model_coordinate_attention2 import CNN_Coord2
 from models.model_simam_attention import CNN_Simam
 from models.model_External_attention import CNN_External
 from models.model_hamnet_attention import CNN_Hamnet
@@ -46,6 +47,7 @@ parser.add_argument('--num_iter_per_epoch', type=int, default=400)
 parser.add_argument('--epoch_decay_start', type=int, default=80)
 
 # 经常改的参数
+parser.add_argument('--attentionType', type = str, default='')
 parser.add_argument('--noise_type', type = str, help='[pairflip, symmetric]', default='symmetric')
 parser.add_argument('--noise_rate', type = float, help = 'corruption rate, should be less than 1', default = 0.5)
 parser.add_argument('--dataset', type = str, help = 'mnist, cifar10, or cifar100', default = 'cifar10')
@@ -62,7 +64,6 @@ if not use_gpu:
 # Seed
 torch.manual_seed(args.seed)
 torch.cuda.manual_seed(args.seed)
-
 
 # Hyper Parameters
 batch_size = 128
@@ -162,7 +163,7 @@ save_dir = args.result_dir +'/' +args.dataset+'/coteaching/'
 if not os.path.exists(save_dir):
     os.system('mkdir -p %s' % save_dir)
 
-model_str=args.dataset+'_coteaching_'+args.noise_type+'_'+str(args.noise_rate)
+model_str=args.dataset+'_coteaching_'+args.noise_type+'_'+str(args.noise_rate)+'_'+str(args.attentionType)
 
 txtfile=save_dir+"/"+model_str+".txt"
 nowTime=datetime.datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
@@ -303,10 +304,10 @@ def main():
     # cnn1 = CNN_CBAM(input_channel=input_channel, n_outputs=num_classes, attention_type="ca") # 加入通道注意力
     # cnn1 = CNN_PAM(input_channel=input_channel, n_outputs=num_classes) # 加入位置注意力
     # cnn1 = CNN_Facnet(input_channel=input_channel, n_outputs=num_classes) # 加入频率通道注意力
-    # cnn1 = CNN_Coord(input_channel=input_channel, n_outputs=num_classes) # 加入协同注意力
+    cnn1 = CNN_Coord(input_channel=input_channel, n_outputs=num_classes) # 加入协同注意力
     # cnn1 = CNN_Simam(input_channel=input_channel, n_outputs=num_classes) # 加入无参数注意力
     # cnn1 = CNN_External(input_channel=input_channel, n_outputs=num_classes) # 加入外部注意力
-    cnn1 = CNN_Hamnet(input_channel=input_channel, n_outputs=num_classes) # 加入hamnet注意力
+    # cnn1 = CNN_Hamnet(input_channel=input_channel, n_outputs=num_classes) # 加入hamnet注意力
     
 
     if use_gpu:
@@ -316,12 +317,12 @@ def main():
     
     # cnn2 = CNN(input_channel=input_channel, n_outputs=num_classes)
     # cnn2 = CNN_Attention(input_channel=input_channel, n_outputs=num_classes) # 加入自注意力
-    # cnn2 = CNN_CBAM(input_channel=input_channel, n_outputs=num_classes, attention_type="ca") # 加入空间注意力
-    # cnn2 = CNN_PAM(input_channel=input_channel, n_outputs=num_classes) # 加入位置注意力
-    # cnn2 = CNN_Coord(input_channel=input_channel, n_outputs=num_classes) # 加入协同注意力
+    # cnn2 = CNN_CBAM(input_channel=input_channel, n_outputs=num_classes, attention_type="ca") # 加入通道注意力
+    # cnn2 = CNN_PAM2(input_channel=input_channel, n_outputs=num_classes) # 加入位置注意力
+    # cnn2 = CNN_Coord2(input_channel=input_channel, n_outputs=num_classes) # 加入协同注意力
     # cnn2 = CNN_Simam(input_channel=input_channel, n_outputs=num_classes) # 加入无参数注意力
-    # cnn2 = CNN_External(input_channel=input_channel, n_outputs=num_classes) # 加入外部注意力
-    cnn2 = CNN_Hamnet(input_channel=input_channel, n_outputs=num_classes) # 加入hamnet注意力
+    cnn2 = CNN_External(input_channel=input_channel, n_outputs=num_classes) # 加入外部注意力
+    # cnn2 = CNN_Hamnet(input_channel=input_channel, n_outputs=num_classes) # 加入hamnet注意力 不太行
 
 
     

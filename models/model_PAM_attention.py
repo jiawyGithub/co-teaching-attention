@@ -73,11 +73,11 @@ class CNN_PAM(nn.Module):
     def forward(self, x,):
         h=x
         h=self.c1(h)
-        h=self.pam(h)
         h=F.leaky_relu(call_bn(self.bn1, h), negative_slope=0.01)
         h=self.c2(h)
         h=F.leaky_relu(call_bn(self.bn2, h), negative_slope=0.01)
         h=self.c3(h)
+        h=self.pam(h)
         h=F.leaky_relu(call_bn(self.bn3, h), negative_slope=0.01)
         h=F.max_pool2d(h, kernel_size=2, stride=2)
         h=F.dropout2d(h, p=self.dropout_rate)
@@ -96,7 +96,7 @@ class CNN_PAM(nn.Module):
         h=self.c8(h)
         h=F.leaky_relu(call_bn(self.bn8, h), negative_slope=0.01)
         h=self.c9(h)
-        h=self.pam(h)
+        # h=self.pam(h)
         h=F.leaky_relu(call_bn(self.bn9, h), negative_slope=0.01)
         h=F.avg_pool2d(h, kernel_size=h.data.shape[2])
 

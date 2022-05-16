@@ -77,8 +77,10 @@ class CNN_PAM2(nn.Module):
     def forward(self, x,):
         h=x
         h=self.c1(h)
+        h=self.pam1(h) # 一层二层三层精度效果差不多
         h=F.leaky_relu(call_bn(self.bn1, h), negative_slope=0.01)
         h=self.c2(h)
+        h=self.pam1(h)
         h=F.leaky_relu(call_bn(self.bn2, h), negative_slope=0.01)
         h=self.c3(h)
         h=self.pam1(h)
@@ -87,23 +89,24 @@ class CNN_PAM2(nn.Module):
         h=F.dropout2d(h, p=self.dropout_rate)
 
         h=self.c4(h)
+        # h=self.pam2(h) # 不行
         h=F.leaky_relu(call_bn(self.bn4, h), negative_slope=0.01)
         h=self.c5(h)
         h=F.leaky_relu(call_bn(self.bn5, h), negative_slope=0.01)
         h=self.c6(h)
-        h=self.pam2(h)
+        # h=self.pam2(h)
         h=F.leaky_relu(call_bn(self.bn6, h), negative_slope=0.01)
         h=F.max_pool2d(h, kernel_size=2, stride=2)
         h=F.dropout2d(h, p=self.dropout_rate)
 
         h=self.c7(h)
-        h=self.pam3(h)
+        # h=self.pam3(h) # 不行
         h=F.leaky_relu(call_bn(self.bn7, h), negative_slope=0.01)
         h=self.c8(h)
-        h=self.pam4(h)
+        # h=self.pam4(h)
         h=F.leaky_relu(call_bn(self.bn8, h), negative_slope=0.01)
         h=self.c9(h)
-        h=self.pam5(h)
+        # h=self.pam5(h)
         h=F.leaky_relu(call_bn(self.bn9, h), negative_slope=0.01)
         h=F.avg_pool2d(h, kernel_size=h.data.shape[2])
 
